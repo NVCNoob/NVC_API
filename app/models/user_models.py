@@ -8,6 +8,7 @@ class UserCreate(BaseModel):
     phone_number: str = None
     nin: str
 
+#nciedf
 class UserRead(BaseModel):
     id: int
     name: str
