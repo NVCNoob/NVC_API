@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 from requests import Session
 from app.core.database import get_db
-from app.models.user_models import UserCreate, UserRead
+from app.models.user_models import UserCreate, UserRead, UserDelete
+from app.services.auth_service import AppwriteAuthService, get_auth_service
 from app.services.user_services import create_user, get_user_by_email, get_users, delete_user
 
 users_router = APIRouter()
@@ -21,11 +22,19 @@ async def get_user_route(user_email: str, db: Session = Depends(get_db)):
 
 # Create a user
 @users_router.post("/", response_model=UserRead)
-def register_user_route(user: UserCreate, db: Session = Depends(get_db)):
-    return create_user(db, user)
+def register_user_route(
+        user: UserCreate,
+        db: Session = Depends(get_db),
+        auth: AppwriteAuthService = Depends(get_auth_service)
+):
+    return create_user(db, user, auth)
 
 
 # Delete a user
 @users_router.delete("/{user_id}")
-async def delete_user_route(user_id: int, db: Session = Depends(get_db)):
-    return delete_user(db, user_id)
+async def delete_user_route(
+        user: UserDelete,
+        db: Session = Depends(get_db),
+        auth: AppwriteAuthService = Depends(get_auth_service)
+):
+    return delete_user(db, user, auth)

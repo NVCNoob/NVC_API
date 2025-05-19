@@ -1,3 +1,5 @@
+import os
+
 import requests
 from appwrite.client import Client
 from appwrite.services.account import Account
@@ -88,3 +90,15 @@ class AppwriteAuthService:
             return {"message": "Account deleted successfully"}
         else:
             raise Exception(f"Account deletion failed: {response.status_code} - {response.text}")
+
+
+PROJECT_ID = os.getenv("PROJECT_ID")
+API_KEY = os.getenv("API_KEY")
+HOSTNAME = "https://cloud.appwrite.io/v1"
+
+def get_auth_service() -> AppwriteAuthService:
+    return AppwriteAuthService(
+        project_id=PROJECT_ID,
+        api_key=API_KEY,
+        hostname=HOSTNAME
+    )
