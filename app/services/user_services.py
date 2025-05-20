@@ -1,4 +1,8 @@
 from typing import Sequence, Optional, cast
+
+from appwrite.exception import AppwriteException
+from fastapi import HTTPException
+from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, select
 from sqlmodel.sql._expression_select_cls import Select
 from app.core.security import hash_password
@@ -8,21 +12,37 @@ from app.services.auth_service import AppwriteAuthService
 
 
 def create_user(db: Session, user_create: UserCreate, auth: AppwriteAuthService) -> UserRead:
-    auth.signup_user(user_create.email, user_create.password)
+    # Optional: Check if the user exists in local DB first
+    existing_user = get_user_by_email(db, user_create.email)
+    if existing_user:
+        raise HTTPException(status_code=409, detail="User with this email already exists")
 
-    user = User(
-        name=user_create.name,
-        email=user_create.email,
-        phone_number=user_create.phone_number,
-        password=hash_password(user_create.password),
-        nin=user_create.nin,
-    )
+    # Try to create user on Appwrite
+    try:
+        auth.signup_user(user_create.email, user_create.password)
+    except AppwriteException as e:
+        if e.code == 409:
+            raise HTTPException(status_code=409, detail="User already exists on Appwrite")
+        raise HTTPException(status_code=500, detail=f"Appwrite error: {e.message}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error during Appwrite signup: {str(e)}")
 
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    return UserRead.model_validate(user)
+    # Create user locally
+    try:
+        user = User(
+            name=user_create.name,
+            email=user_create.email,
+            phone_number=user_create.phone_number,
+            password=hash_password(user_create.password),
+            nin=user_create.nin,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return UserRead.model_validate(user)
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
 def get_users(db: Session) -> Sequence[User]:
@@ -36,26 +56,37 @@ def get_user_by_email(db: Session, email: str) -> Optional[User]:
     results = db.exec(statement)
     return results.first()
 
-def delete_user(db: Session, user_delete: UserDelete, auth: AppwriteAuthService) -> User:
+
+def delete_user(db: Session, user_delete: UserDelete, auth: AppwriteAuthService) -> UserRead:
     # Delete the Appwrite account using the JWT
     try:
         auth.delete_user_account(user_delete.jwt)
+    except AppwriteException as e:
+        raise HTTPException(status_code=400, detail=f"Appwrite deletion failed: {e.message}")
     except Exception as e:
-        raise Exception(f"Failed to delete Appwrite account: {e}")
+        raise HTTPException(status_code=500, detail=f"Unexpected error deleting Appwrite account: {str(e)}")
 
     # Query the local DB for the user
     statement: Select = cast(Select, select(User).where(User.id == user_delete.user_id))
     user = db.exec(statement).first()
 
     if not user:
-        raise Exception("User not found in local database")
+        raise HTTPException(status_code=404, detail="User not found in local database")
 
-    # Delete it from the local DB
+    # Delete user from local DB
     db.delete(user)
     db.commit()
-    return user.model_validate()
 
+    return UserRead.model_validate(user)
 
 
 def login_user(auth: AppwriteAuthService, email: str, password: str) -> str:
-    return auth.login_user(email, password)
+    try:
+        return auth.login_user(email, password)
+    except AppwriteException as e:
+        if e.code == 401:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=500, detail=f"Appwrite error: {e.message}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected login error: {str(e)}")
+
