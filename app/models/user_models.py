@@ -5,7 +5,7 @@ class UserCreate(BaseModel):
     name: str
     email: str
     password: str
-    phone_number: str = None
+    phone_number: str
     nin: str
 
 class UserDelete(BaseModel):

@@ -8,11 +8,12 @@ from app.services.auth_service import AppwriteAuthService
 
 
 def create_user(db: Session, user_create: UserCreate, auth: AppwriteAuthService) -> UserRead:
-    appwrite_user = auth.signup_user(user_create.email, user_create.password)
+    auth.signup_user(user_create.email, user_create.password)
 
     user = User(
         name=user_create.name,
         email=user_create.email,
+        phone_number=user_create.phone_number,
         password=hash_password(user_create.password),
         nin=user_create.nin,
     )

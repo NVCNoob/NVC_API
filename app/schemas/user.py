@@ -8,7 +8,7 @@ class User(SQLModel, table=True):
     name: str
     email: str
     password: str
-    phone_number: str = None
+    phone_number: str
     nin: str
     is_verified: bool = False
     is_active: bool = True
