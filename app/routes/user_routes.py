@@ -43,7 +43,7 @@ async def delete_user_route(
     return delete_user(db, user, auth)
 
 # Login a user
-@users_router.delete("/login")
+@users_router.post("/login")
 async def login_user_route(
         user: UserLoginCreate,
         db: Session = Depends(get_db),
