@@ -3,18 +3,19 @@ from sqlmodel import Session
 from uuid import uuid4
 
 from app.core.database import get_db
+from app.models.api_key_models import APIKeyCreate, APIKeyRead
 from app.schemas.api_key import APIKey
 from app.services.api_key_service import admin_only
 
 admin_router = APIRouter()
 
 @admin_router.post("/create-api-key")
-def create_api_key(name: str, db: Session = Depends(get_db), admin=Depends(admin_only)):
+def create_api_key(api_key: APIKeyCreate, db: Session = Depends(get_db), _=Depends(admin_only)):
     key_str = str(uuid4())
 
     api_key = APIKey(
         key=key_str,
-        name=name,
+        name=api_key.name,
         is_active=True
     )
 
@@ -22,4 +23,4 @@ def create_api_key(name: str, db: Session = Depends(get_db), admin=Depends(admin
     db.commit()
     db.refresh(api_key)
 
-    return {"api_key": api_key.key, "name": api_key.name}
+    return APIKeyRead(api_key=api_key.key, name=api_key.name)
