@@ -6,7 +6,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, select
 from sqlmodel.sql._expression_select_cls import Select
 from app.core.security import hash_password
-from app.models.user_models import UserCreate, UserRead, UserDelete
+from app.models.user_models import UserCreate, UserRead, UserDelete, UserLoginCreate, UserLoginRead
+from app.routes.user_routes import users_router
 from app.schemas.user import User
 from app.services.auth_service import AppwriteAuthService
 
@@ -80,9 +81,24 @@ def delete_user(db: Session, user_delete: UserDelete, auth: AppwriteAuthService)
     return UserRead.model_validate(user)
 
 
-def login_user(auth: AppwriteAuthService, email: str, password: str) -> str:
+def login_user(db: Session, user: UserLoginCreate, auth: AppwriteAuthService) -> UserLoginRead:
     try:
-        return auth.login_user(email, password)
+        jwt = auth.login_user(user.email, user.password)
+        user = get_user_by_email(db, user.email)
+
+        user = UserLoginRead(
+            id = user.id,
+            name = user.name,
+            email = user.email,
+            phone_number = user.phone_number,
+            nin = user.nin,
+            is_verified = user.is_verified,
+            is_active = user.is_active,
+            created_at = user.created_at,
+            jwt = jwt,
+        )
+
+        return UserLoginRead.model_validate(user)
     except AppwriteException as e:
         if e.code == 401:
             raise HTTPException(status_code=401, detail="Invalid email or password")

@@ -26,3 +26,22 @@ class UserRead(BaseModel):
     model_config = {
         "from_attributes": True,  # Enables ORM mode in Pydantic v2
     }
+
+class UserLoginCreate(BaseModel):
+    email: str
+    password: str
+
+class UserLoginRead(BaseModel):
+    id: int
+    name: str
+    email: str
+    nin: str
+    is_active: bool
+    phone_number: str = None
+    is_verified: bool = False
+    created_at: datetime
+    jwt: str
+
+    model_config = {
+        "from_attributes": True,  # Enables ORM mode in Pydantic v2
+    }
