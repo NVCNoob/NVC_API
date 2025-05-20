@@ -96,7 +96,7 @@ def login_user(db: Session, user: UserLoginCreate, auth: AppwriteAuthService) ->
             jwt = jwt,
         )
 
-        return UserLoginRead.model_validate(user)
+        return user
     except AppwriteException as e:
         if e.code == 401:
             raise HTTPException(status_code=401, detail="Invalid email or password")
