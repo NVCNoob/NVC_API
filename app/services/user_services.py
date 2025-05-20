@@ -1,5 +1,4 @@
 from typing import Sequence, Optional, cast
-
 from appwrite.exception import AppwriteException
 from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
@@ -7,7 +6,6 @@ from sqlmodel import Session, select
 from sqlmodel.sql._expression_select_cls import Select
 from app.core.security import hash_password
 from app.models.user_models import UserCreate, UserRead, UserDelete, UserLoginCreate, UserLoginRead
-from app.routes.user_routes import users_router
 from app.schemas.user import User
 from app.services.auth_service import AppwriteAuthService
 
