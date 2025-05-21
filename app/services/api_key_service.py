@@ -1,3 +1,5 @@
+import os
+
 from sqlmodel import Session, select
 from app.core.database import get_db
 from app.schemas.api_key import APIKey
@@ -19,7 +21,7 @@ def verify_api_key(
 
 
 def admin_only(x_admin_token: str = Header(...)):
-    if x_admin_token != "aiaidj231j43^%#3GGFSt%$32$%Grgrtce^^%4#4@21Y_r)%$(hgbjhbdeed$)5930djksdhb@Y^631728/.vkjvdfdvneui":
+    if x_admin_token != os.getenv("ADMIN_TOKEN"):
         raise HTTPException(status_code=403, detail="Admin access only")
 
 

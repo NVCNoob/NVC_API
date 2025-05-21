@@ -10,7 +10,7 @@ from app.services.api_key_service import admin_only
 admin_router = APIRouter()
 
 @admin_router.post("/create-api-key")
-def create_api_key(api_key: APIKeyCreate, db: Session = Depends(get_db), _=Depends(admin_only)):
+async def create_api_key(api_key: APIKeyCreate, db: Session = Depends(get_db), _=Depends(admin_only)):
     key_str = str(uuid4())
 
     api_key = APIKey(
