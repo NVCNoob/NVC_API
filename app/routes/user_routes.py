@@ -1,7 +1,9 @@
+from typing import Sequence
 from fastapi import APIRouter, Depends
 from requests import Session
 from app.core.database import get_db
-from app.models.user_models import UserCreate, UserRead, UserDelete, UserLoginCreate
+from app.models.user_models import UserCreate, UserRead, UserDelete, UserLoginCreate, UserLoginRead
+from app.schemas.user import User
 from app.services.api_key_service import verify_api_key
 from app.services.auth_service import AppwriteAuthService, get_auth_service
 from app.services.user_services import create_user, get_user_by_email, get_users, delete_user, login_user
