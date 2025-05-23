@@ -11,8 +11,7 @@ async def lifespan(_: FastAPI):
     yield
 
 origins = [
-    "http://0.0.0.0:8000",
-    "https://your-production-domain.com"  # production domain
+    "http://0.0.0.0:8000", "https://nvc-official-frontend.vercel.app"
 ]
 
 app = FastAPI(
