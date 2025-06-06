@@ -7,7 +7,7 @@ class UserCreate(BaseModel):
     email: str
     password: str
     phone_number: str
-    nin: str
+    nin: Optional[str]
 
 class UserDelete(BaseModel):
     id: int
@@ -20,7 +20,7 @@ class UserRead(BaseModel):
     email: str
     nin: Optional[str]
     is_active: bool
-    phone_number: str = None
+    phone_number: Optional[str] = None
     is_verified: bool = False
     created_at: datetime
 

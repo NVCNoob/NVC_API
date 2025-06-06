@@ -28,6 +28,9 @@ def create_user(db: Session, user_create: UserCreate, auth: AppwriteAuthService)
 
     # Create user locally
     try:
+        if user_create.nin is None:
+            user_create.nin = ""
+            
         user = User(
             name=user_create.name,
             email=user_create.email,
