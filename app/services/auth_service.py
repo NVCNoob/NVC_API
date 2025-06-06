@@ -4,8 +4,9 @@ import requests
 from appwrite.client import Client
 from appwrite.services.account import Account
 from typing import Optional
-from app.models.auth_models import EmailRequest
+from app.models.auth_models import EmailRequest, EmailVerificationRequest
 from fastapi import HTTPException
+from appwrite.exception import AppwriteException
 
 
 class AppwriteAuthService:
@@ -59,10 +60,25 @@ class AppwriteAuthService:
         account = self._get_account_with_jwt(email_request.jwt)
 
         try:
-            result = account.create_verification(
-                url=os.getenv("VERIFICATION_REDIRECT")
+            verification_redirect = os.getenv("VERIFICATION_REDIRECT")
+            if verification_redirect is None:
+                raise ValueError("VERIFICATION_REDIRECT environment variable not set")
+            
+            account.create_verification(
+                url=verification_redirect
             )
+            
             return {"message": "Verification email sent."}
+        except AppwriteException as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    def verify_email(self, verification_request: EmailVerificationRequest):
+        account = self._get_account_with_jwt(verification_request.jwt)
+        user_id: str = account.get()["$id"]
+        
+        try:
+            _ = account.update_verification(user_id=user_id, secret=verification_request.secret)
+            return {"message": "Email verified successfully."}
         except AppwriteException as e:
             raise HTTPException(status_code=400, detail=str(e))
 
