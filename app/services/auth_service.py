@@ -4,6 +4,8 @@ import requests
 from appwrite.client import Client
 from appwrite.services.account import Account
 from typing import Optional
+from app.models.auth_models import EmailRequest
+from fastapi import HTTPException
 
 
 class AppwriteAuthService:
@@ -52,6 +54,17 @@ class AppwriteAuthService:
             return jwt['jwt']
         except Exception as e:
             raise Exception(f"Login failed: {e}")
+
+    def send_verification_email(self, email_request: EmailRequest):
+        account = self._get_account_with_jwt(email_request.jwt)
+
+        try:
+            result = account.create_verification(
+                url=os.getenv("VERIFICATION_REDIRECT")
+            )
+            return {"message": "Verification email sent."}
+        except AppwriteException as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
     def get_user_from_jwt(self, jwt: str) -> Optional[dict]:
         """
@@ -102,3 +115,6 @@ def get_auth_service() -> AppwriteAuthService:
         api_key=API_KEY,
         hostname=HOSTNAME
     )
+
+
+
