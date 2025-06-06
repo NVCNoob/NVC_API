@@ -38,7 +38,7 @@ class UserLoginRead(BaseModel):
     email: str
     nin: str
     is_active: bool
-    phone_number: str = None
+    phone_number: Optional[str] = None
     is_verified: bool = False
     created_at: datetime
     jwt: str

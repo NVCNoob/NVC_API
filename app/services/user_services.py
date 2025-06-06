@@ -69,7 +69,7 @@ def delete_user(db: Session, user_delete: UserDelete, auth: AppwriteAuthService)
         raise HTTPException(status_code=500, detail=f"Unexpected error deleting Appwrite account: {str(e)}")
 
     # Query the local DB for the user
-    statement: Select = cast(Select, select(User).where(User.id == user_delete.user_id))
+    statement: Select = cast(Select, select(User).where(User.id == user_delete.id))
     user = db.exec(statement).first()
 
     if not user:
@@ -82,20 +82,26 @@ def delete_user(db: Session, user_delete: UserDelete, auth: AppwriteAuthService)
     return UserRead.model_validate(user)
 
 
-def login_user(db: Session, user: UserLoginCreate, auth: AppwriteAuthService) -> UserLoginRead:
+def login_user(db: Session, user_to_login: UserLoginCreate, auth: AppwriteAuthService) -> UserLoginRead:
     try:
-        jwt = auth.login_user(user.email, user.password)
-        user = get_user_by_email(db, user.email)
+        jwt = auth.login_user(user_to_login.email, user_to_login.password)
+        db_user = get_user_by_email(db, user_to_login.email)  # Rename to avoid shadowing
 
+        if db_user is None:
+            raise HTTPException(status_code=404, detail="User not found in local database")
+
+        if db_user.id is None:
+            raise HTTPException(status_code=404, detail="User ID not found in local database")
+            
         user = UserLoginRead(
-            id = user.id,
-            name = user.name,
-            email = user.email,
-            phone_number = user.phone_number,
-            nin = user.nin,
-            is_verified = user.is_verified,
-            is_active = user.is_active,
-            created_at = user.created_at,
+            id = db_user.id,
+            name = db_user.name,
+            email = db_user.email,
+            phone_number = db_user.phone_number,
+            nin = db_user.nin,
+            is_verified = db_user.is_verified,
+            is_active = db_user.is_active,
+            created_at = db_user.created_at,
             jwt = jwt,
         )
 
