@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Optional
 from datetime import datetime
 
 class UserCreate(BaseModel):
@@ -17,7 +17,7 @@ class UserRead(BaseModel):
     id: int
     name: str
     email: str
-    nin: str
+    nin: Optional[str]
     is_active: bool
     phone_number: str = None
     is_verified: bool = False
