@@ -72,6 +72,21 @@ class AppwriteAuthService:
         except AppwriteException as e:
             raise HTTPException(status_code=400, detail=str(e))
 
+    def forgot_password(self, email: str):
+        account = Account(self.client)
+
+        try:
+            recovery_redirect = os.getenv("RECOVERY_REDIRECT")
+            if recovery_redirect is None:
+                raise ValueError("RECOVERY_REDIRECT environment variable not set")
+            account.create_recovery(
+                email=email, url=recovery_redirect
+            )
+            return {"message": "Password reset email sent."}
+    
+        except AppwriteException as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
     def verify_email(self, verification_request: EmailVerificationRequest):
         account = self._get_account_with_jwt(verification_request.jwt)
         user_id: str = account.get()["$id"]

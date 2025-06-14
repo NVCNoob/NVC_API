@@ -8,3 +8,7 @@ class EmailRequest(BaseModel):
 class EmailVerificationRequest(BaseModel):
   secret: str
   jwt: str
+
+class ForgotPsswordRequest(BaseModel):
+  email: str
+  

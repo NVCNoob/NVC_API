@@ -12,7 +12,7 @@ admin_router = APIRouter()
 async def create_api_key(api_key: APIKeyCreate, db: Session = Depends(get_db), _=Depends(admin_only)) -> APIKeyRead:
     key_str = str(uuid4())
 
-    api_key = APIKey(
+    new_api_key = APIKey(
         key=key_str,
         name=api_key.name,
         is_active=True
@@ -22,4 +22,4 @@ async def create_api_key(api_key: APIKeyCreate, db: Session = Depends(get_db), _
     db.commit()
     db.refresh(api_key)
 
-    return APIKeyRead(api_key=api_key.key, name=api_key.name)
+    return APIKeyRead(api_key=new_api_key.key, name=new_api_key.name)
