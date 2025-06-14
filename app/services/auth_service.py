@@ -10,14 +10,13 @@ from appwrite.exception import AppwriteException
 
 
 class AppwriteAuthService:
-    def __init__(self, project_id: str, api_key: str, hostname: str):
+    def __init__(self, project_id: str, hostname: str):
         """
         Handles Appwrite-based authentication from the backend.
         """
         self.client = Client()
-        self.client.set_endpoint(hostname).set_project(project_id).set_key(api_key)
+        self.client.set_endpoint(hostname).set_project(project_id)
         self.project_id = project_id
-        self.api_key = api_key
         self.hostname = hostname
 
     def _get_account_with_jwt(self, jwt: str) -> Account:
@@ -137,13 +136,11 @@ class AppwriteAuthService:
 
 
 PROJECT_ID = os.getenv("PROJECT_ID")
-API_KEY = os.getenv("API_KEY")
 HOSTNAME = "https://cloud.appwrite.io/v1"
 
 def get_auth_service() -> AppwriteAuthService:
     return AppwriteAuthService(
         project_id=PROJECT_ID,
-        api_key=API_KEY,
         hostname=HOSTNAME
     )
 
